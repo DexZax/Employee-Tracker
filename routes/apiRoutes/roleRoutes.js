@@ -3,41 +3,73 @@ const router = express.Router();
 const db = require("../../db/connection");
 
 // view all roles
-router.get("/api/roles", (req, res) => {
+function viewRoles () {
   const sql = `SELECT * FROM role`;
   db.query(sql, (err, rows) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      console.log("error", err);
       return;
     }
-    res.json({
-      message: "success",
-      data: rows,
-    });
+    console.table(rows);
   });
-});
+};
 
 // Create a role
-router.post("/role", ({ body }, res) => {
-  const errors = inputCheck(body, "title", "salary", "department_id");
-  if (errors) {
-    const sql = `INSERT INTO role (title, salary, department_id)
+function createRole (){
+  return inquirer.prompt ([
+    {
+        type: 'input',
+        name: 'title',
+        message: 'What is the title?',
+        validate: nameInput => {
+            if (nameInput) {
+              return true;
+            } else {
+              console.log('you must have a title');
+              return false;
+            }
+          }
+    },
+    {
+      type: 'input',
+      name: 'salary',
+      message: 'what is the salary?',
+      validate: nameInput => {
+          if (nameInput) {
+            return true;
+          } else {
+            console.log('you must have a salary');
+            return false;
+          }
+        }
+  },
+  {
+    type: 'input',
+    name: 'department_id',
+    message: 'What is the department ID?',
+    validate: nameInput => {
+        if (nameInput) {
+          return true;
+        } else {
+          console.log('you must have a department ID');
+          return false;
+        }
+      }
+},
+]). then ((answers) => {
+  const sql = `INSERT INTO role (title, salary, department_id)
           VALUES (?,?,?)`;
-    const params = [body.title, body.salary, body.department_id];
-
     db.query(sql, params, (err, result) => {
       if (err) {
-        res.status(400).json({ error: err.message });
+        console.log("error", err);
         return;
       }
-      res.json({
-        message: "success",
-        data: body,
-      });
+      console.log("new role created!")
+      // callback function prompt questions
     });
-    res.status(400).json({ error: errors });
     return;
-  }
-});
 
-module.exports = router;
+})
+
+
+module.exports = createRole;
